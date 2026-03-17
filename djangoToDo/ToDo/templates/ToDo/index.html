@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ToDo</title>
+  <meta name="description" content="ToDoリストです">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="{% static 'ToDo/style.css' %}">
+</head>
+<body>
+ <div class="container">
+  <header>
+    <h1>ToDo</h1>
+    <form action="{% url 'logout' %}" method="POST" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit">ログアウト</button>
+    </form>
+  </header>
+  <main>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="task">
+        <input type="text" name="reason" placeholder="reason">
+        <input type="date" name="due_date">
+        <button type="submit">追加</button>
+    </form>
+    <br>
+    <h2>未完了タスク</h2>
+    <ul>
+        
+    {% for task in incomplete_tasks %}
+        
+        <li>
+
+            <span {% if task.days_left < 0 %}style="color:red;"{% endif %}>
+                {{ task.title }} --- {{ task.reason }} --- {{ task.due_date }}
+
+                {% if task.days_left != None %}
+                  {% if task.days_left > 0 %}
+                    （あと {{ task.days_left }} 日）
+                  {% elif task.days_left == 0 %}
+                    （今日まで！）
+                  {% else %}
+                    ({{ task.days_left_abs }} 日経過）
+                  {% endif %}
+                {% else %}
+                  （期限なし）
+                {% endif %}
+            </span>
+
+              <a href="{% url 'edit' task.id %}">編集</a>
+            <form action="{% url 'done' task.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">完了</button>
+            </form>
+
+            <form action="{% url 'delete' task.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" onclick="return confirm('本当に削除しますか？')">削除</button>
+            </form>
+            
+        </li>
+        
+    {% endfor %}
+    </ul>
+
+    <h2>完了タスク</h2>
+    <ul>
+    {% for task in complete_tasks %}
+        
+        <li>
+            <s>{{ task.title }} --- {{ task.reason }} --- {{ task.due_date }}</s>
+              <form action="{% url 'done' task.id %}" method="POST" style="display:inline;">
+                  {% csrf_token %}
+                   <button type="submit">戻る</button>
+              </form>
+
+              <a href="{% url 'edit' task.id %}">編集</a>
+            <form action="{% url 'delete' task.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" onclick="return confirm('本当に削除しますか？')">削除</button>
+            </form>
+        </li>
+        
+    {% endfor %}
+    </ul>
+   </main>
+ </div>
+</body>
+</html>
